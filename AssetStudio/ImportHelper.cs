@@ -71,8 +71,9 @@ namespace AssetStudio
 
         private static FileType CheckFileType(EndianBinaryReader reader)
         {
+            var offset = RemoveDummy(reader);
             var signature = reader.ReadStringToNull(20);
-            reader.Position = 0;
+            reader.Position = offset;
             switch (signature)
             {
                 case "UnityWeb":
@@ -107,6 +108,35 @@ namespace AssetStudio
                         }
                     }
             }
+        }
+
+        public static long RemoveDummy(EndianBinaryReader reader)
+        {
+            string signature = string.Empty;
+            var done = false;
+            int inc;
+            long offset = 0;
+
+            for (inc = 0; inc < 100 && done == false; inc++)
+            {
+                signature = reader.ReadStringToNull();
+                switch (signature)
+                {
+                    case "UnityWeb":
+                    case "UnityRaw":
+                    case "UnityArchive":
+                    case "UnityFS":
+                    case "UnityWebData1.0":
+                        done = true;
+                        break;
+                }
+            }
+            if (inc == 0 && done)
+                offset = 0;
+            if (inc != 0 && done)
+                offset = reader.Position - signature.Length - 1;
+            reader.Position = offset;
+            return offset;
         }
     }
 }
