@@ -658,13 +658,16 @@ namespace AssetStudioGUI
 
         private void classesListView_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
+            classTextBox.Visible = true;
+            assetInfoLabel.Visible = false;
+            assetInfoLabel.Text = null;
+            textPreviewBox.Visible = false;
+            fontPreviewBox.Visible = false;
+            FMODpanel.Visible = false;
+            glControl1.Visible = false;
+            StatusStripUpdate("");
             if (e.IsSelected)
             {
-                if (!classTextBox.Visible)
-                {
-                    assetInfoLabel.Visible = false;
-                    classTextBox.Visible = true;
-                }
                 classTextBox.Text = ((TypeTreeItem)classesListView.SelectedItems[0]).ToString();
             }
         }
@@ -896,10 +899,15 @@ namespace AssetStudioGUI
             var result = system.createSound(m_AudioData, FMOD.MODE.OPENMEMORY | loopMode, ref exinfo, out sound);
             if (ERRCHECK(result)) return;
 
-            result = sound.getSubSound(0, out var subsound);
-            if (result == FMOD.RESULT.OK)
+            sound.getNumSubSounds(out var numsubsounds);
+
+            if (numsubsounds > 0)
             {
-                sound = subsound;
+                result = sound.getSubSound(0, out var subsound);
+                if (result == FMOD.RESULT.OK)
+                {
+                    sound = subsound;
+                }
             }
 
             result = sound.getLength(out FMODlenms, FMOD.TIMEUNIT.MS);
@@ -1539,7 +1547,7 @@ namespace AssetStudioGUI
                 Application.Exit();
             }
 
-            result = system.init(1, FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
+            result = system.init(2, FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
             if (ERRCHECK(result)) { return; }
 
             result = system.getMasterSoundGroup(out masterSoundGroup);
